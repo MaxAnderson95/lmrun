@@ -1,6 +1,6 @@
 # lmrun
 
-A CLI to run Groovy or PowerShell scripts on a LogicMonitor collector for debugging purposes
+A CLI to run Groovy or PowerShell scripts on a LogicMonitor collector for debugging purposes.
 
 ## Installation
 
@@ -25,7 +25,7 @@ Please enter the API access id:
 Please enter the API access key:
 ```
 
-or interactively
+or via cli parameters
 
 ```
 lmrun login --company company_name --access_id abc123 --access_key def456
