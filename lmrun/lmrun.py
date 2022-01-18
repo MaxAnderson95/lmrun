@@ -8,10 +8,6 @@ from logicmonitor_sdk import LMApi
 from pathlib import Path
 
 
-def parse_extension(file: Path):
-    return file.suffix
-
-
 def connect_to_lm(creds):
     configuration = logicmonitor_sdk.Configuration()
     configuration.company = creds.get('company')
@@ -23,22 +19,29 @@ def connect_to_lm(creds):
     return api_instance
 
 
-def submit_script(script: str, type: str, api_instance: LMApi, collector_id: int):
-    if type == ".groovy":
+def submit_script(path: Path, collector_id: int, api_instance: LMApi):
+    if path.suffix == ".groovy":
         command = "groovy"
-    elif type == ".ps1":
+    elif path.suffix == ".ps1":
         command = "posh"
     else:
         raise TypeError("Input file must be .groovy or .ps1")
+
+    with open(path, 'r', encoding="utf-8-sig") as f:  # utf-8-sig handles with and w/o BOM
+        script = f.read().strip()
+
     body = {"cmdline": f"!{command} \n {script}"}
     thread = api_instance.execute_debug_command(
-        async_req=True, body=body, collector_id=collector_id,)
+        async_req=True,
+        body=body,
+        collector_id=collector_id
+    )
     result = thread.get()
 
     return result.session_id
 
 
-def get_script_result(session_id: str, api_instance: LMApi, collector_id: int):
+def get_script_result(session_id: str, collector_id: int, api_instance: LMApi):
     response = api_instance.get_debug_command_result(
         id=session_id, collector_id=collector_id)
 
@@ -47,7 +50,7 @@ def get_script_result(session_id: str, api_instance: LMApi, collector_id: int):
 
 def get_config_file_path():
     home = Path.home()
-    return home.joinpath(".lmrun/config.json")
+    return home.joinpath(".lmrun", "config.json")
 
 
 def get_login_credentials():
@@ -67,7 +70,7 @@ def get_login_credentials():
 
 def get_random_collector(api_instance: LMApi):
     collectors = api_instance.get_collector_list().items
-    return random.choice(collectors).id
+    return random.choice(collectors)
 
 
 def command_login(company: str = None, access_id: str = None, access_key: str = None):
@@ -97,16 +100,12 @@ def command_logout():
 
 
 def command_run(path: str, collector_id: int = None):
-    path = Path(path)  # Convert input path to Path obj
     creds = get_login_credentials()
     api = connect_to_lm(creds)
-    with open(path, 'r', encoding="utf-8-sig") as f:  # utf-8-sig handles with and w/o BOM
-        script = f.read().strip()
     if collector_id == None:
-        collector_id = get_random_collector(api)
-    session_id = submit_script(
-        script, parse_extension(path), api, collector_id)
-    result = get_script_result(session_id, api, collector_id)
+        collector_id = get_random_collector(api).id
+    session_id = submit_script(Path(path), collector_id, api)
+    result = get_script_result(session_id, collector_id, api)
     print(result)
 
 
