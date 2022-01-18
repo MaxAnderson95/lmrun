@@ -35,18 +35,18 @@ This will create a config.json file in the `~\.lmrun` directory.
 
 ### Run a script
 
-Then use the `run` command by passing a .groovy or .ps1 file and an optional `collector_id`.
+Then use the `execute` or `exe` command by passing a .groovy or .ps1 file and an optional `collector_id`.
 
 ```
-lmrun run test.groovy
-```
-
-```
-lmrun run test.ps1
+lmrun execute test.groovy
 ```
 
 ```
-lmrun test.groovy --collector_id 5
+lmrun exe test.ps1
+```
+
+```
+lmrun exe test.groovy --collector_id 5
 ```
 
 If no `collector_id` is specified, a random collector is chosen for each run.

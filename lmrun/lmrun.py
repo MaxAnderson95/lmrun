@@ -25,10 +25,17 @@ def submit_script(path: Path, collector_id: int, api_instance: LMApi):
     elif path.suffix == ".ps1":
         command = "posh"
     else:
-        raise TypeError("Input file must be .groovy or .ps1")
+        print("Input script must be .groovy or .ps1")
+        sys.exit(1)
 
-    with open(path, 'r', encoding="utf-8-sig") as f:  # utf-8-sig handles with and w/o BOM
-        script = f.read().strip()
+    try:
+        with open(path, 'r', encoding="utf-8-sig") as f:  # utf-8-sig handles with and w/o BOM
+            script = f.read().strip()
+    except FileNotFoundError:
+        print(f"Error: {path} was not found.")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error while importing {path}: {e}")
 
     body = {"cmdline": f"!{command} \n {script}"}
     thread = api_instance.execute_debug_command(
@@ -112,7 +119,8 @@ def command_run(path: str, collector_id: int = None):
 def main():
     fire.Fire({
         "login": command_login,
-        "run": command_run,
+        "execute": command_run,
+        "exe": command_run,
         "logout": command_logout
     })
 
