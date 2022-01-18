@@ -6,7 +6,7 @@
       "type": "python",
       "request": "launch",
       "program": "${file}",
-      "args": ["run", "script.groovy"],
+      "args": ["execute", "test.groovy"],
       "console": "integratedTerminal"
     }
   ]
