@@ -1,7 +1,7 @@
 from importlib.metadata import entry_points
 from setuptools import setup, find_packages
 
-VERSION = '0.0.4'
+VERSION = '0.0.5'
 DESCRIPTION = 'A CLI to run Groovy or PowerShell scripts on a LogicMonitor collector for debugging purposes'
 
 
