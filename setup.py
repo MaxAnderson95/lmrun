@@ -1,7 +1,7 @@
 from importlib.metadata import entry_points
 from setuptools import setup, find_packages
 
-VERSION = '0.0.3'
+VERSION = '0.0.4'
 DESCRIPTION = 'A CLI to run Groovy or PowerShell scripts on a LogicMonitor collector for debugging purposes'
 
 
@@ -20,7 +20,7 @@ setup(
     long_description_content_type="text/markdown",
     long_description=long_description(),
     packages=find_packages(),
-    install_requires=['fire', 'requests'],
+    install_requires=['fire', 'logicmonitor_sdk'],
     keywords=['logicmonitor', 'cli'],
     entry_points={
         'console_scripts': [
