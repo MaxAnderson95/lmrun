@@ -7,6 +7,8 @@ import random
 from logicmonitor_sdk import LMApi
 from pathlib import Path
 
+groovy_inject_script = r'''import com.santaba.agent.collector3.CollectorDb;def hostProps = [:];def instanceProps = [:];try{hostProps = CollectorDb.getInstance().getHost("##HOSTNAME##").getProperties();instanceProps["wildvalue"] = new String("##WILDVALUE##");}catch(Exception e){};'''
+
 
 def connect_to_lm(creds):
     configuration = logicmonitor_sdk.Configuration()
@@ -19,11 +21,12 @@ def connect_to_lm(creds):
     return api_instance
 
 
-def submit_script(path: Path, collector_id: int, api_instance: LMApi):
+def submit_script(path: Path, hostname: str, wildvalue: str, collector_id: int, api_instance: LMApi):
     if path.suffix == ".groovy":
         command = "groovy"
     elif path.suffix == ".ps1":
-        command = "posh"
+        print("PowerShell is not yet supported")
+        sys.exit(1)
     else:
         print("Input script must be .groovy or .ps1")
         sys.exit(1)
@@ -36,6 +39,11 @@ def submit_script(path: Path, collector_id: int, api_instance: LMApi):
         sys.exit(1)
     except Exception as e:
         print(f"Error while importing {path}: {e}")
+
+    if command == "groovy":
+        pre_script = replace_placeholders(
+            groovy_inject_script, hostname, wildvalue)
+        script = f"{pre_script}\n{script}"
 
     body = {"cmdline": f"!{command} \n {script}"}
     thread = api_instance.execute_debug_command(
@@ -80,6 +88,31 @@ def get_random_collector(api_instance: LMApi):
     return random.choice(collectors)
 
 
+def replace_placeholders(template: str, hostname: str, wildvalue: str = None):
+    template = template.replace("##HOSTNAME##", hostname)
+    if wildvalue:
+        template.replace("##WILDVALUE##", wildvalue)
+    return template
+
+
+def get_collector_of_device(device_name: str, api: LMApi):
+    # Get the collector id of a given device by name
+    try:
+        device = api.get_device_list(filter=f"name:\"{device_name}\"")
+    except Exception:
+        print("Failed to get device from API")
+        sys.exit(1)
+    if device.total > 1:
+        print(
+            f"More than one devices returned for the given device name of {device_name}")
+        sys.exit(1)
+    if device.total < 1:
+        print(f"No devices found with the name of {device_name}")
+        sys.exit(1)
+
+    return device.items[0].current_collector_id
+
+
 def command_login(company: str = None, access_id: str = None, access_key: str = None):
     if company == None:
         company = input(
@@ -106,12 +139,13 @@ def command_logout():
     path.unlink()
 
 
-def command_run(path: str, collector_id: int = None):
+# Takes a filepath, hostname of the monitored instance to run against, an optional wildvalue, and optional collector_id
+def command_run(path: str, device_name: str, wildvalue: str = None):
     creds = get_login_credentials()
     api = connect_to_lm(creds)
-    if collector_id == None:
-        collector_id = get_random_collector(api).id
-    session_id = submit_script(Path(path), collector_id, api)
+    collector_id = get_collector_of_device(device_name, api)
+    session_id = submit_script(
+        Path(path), device_name, wildvalue, collector_id, api)
     result = get_script_result(session_id, collector_id, api)
     print(result)
 
