@@ -35,21 +35,19 @@ This will create a config.json file in the `~\.lmrun` directory.
 
 ### Run a script
 
-Then use the `execute` or `exe` command by passing a .groovy or .ps1 file and an optional `collector_id`.
+Then use the `execute` or `exe` command by passing a .groovy or .ps1 file, and the name of the monitored device to run the script against.
 
 ```
-lmrun execute test.groovy
-```
-
-```
-lmrun exe test.ps1
+lmrun execute test.groovy SRV-01
 ```
 
 ```
-lmrun exe test.groovy --collector_id 5
+lmrun exe test.ps1 SRV-01
 ```
 
-If no `collector_id` is specified, a random collector is chosen for each run.
+```
+lmrun exe test.groovy SRV-01
+```
 
 ### Logout
 
