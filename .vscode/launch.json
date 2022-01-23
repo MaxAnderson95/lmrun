@@ -6,7 +6,7 @@
       "type": "python",
       "request": "launch",
       "program": "${file}",
-      "args": ["execute", "test.groovy", "avi.gucu.org"],
+      "args": ["execute", "ActiveDiscovery.groovy", "vcenter.gucu.org"],
       "console": "integratedTerminal"
     }
   ]

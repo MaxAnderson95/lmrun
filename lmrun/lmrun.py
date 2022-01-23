@@ -3,6 +3,7 @@ import json
 import logicmonitor_sdk
 import sys
 import random
+import time
 
 from logicmonitor_sdk import LMApi
 from pathlib import Path
@@ -57,8 +58,13 @@ def submit_script(path: Path, hostname: str, wildvalue: str, collector_id: int, 
 
 
 def get_script_result(session_id: str, collector_id: int, api_instance: LMApi):
-    response = api_instance.get_debug_command_result(
-        id=session_id, collector_id=collector_id)
+    response_received = False
+    while response_received == False:
+        response = api_instance.get_debug_command_result(
+            id=session_id, collector_id=collector_id)
+        if response.output != None:
+            response_received = True
+        time.sleep(1)
 
     return response.output
 
